@@ -10,7 +10,7 @@ func main() {
   for {
     exibeMenu()
     comando := leComando()
-  
+
     switch comando {
       case 1:
         iniciarMonitoramento()
@@ -52,7 +52,9 @@ func leComando() int {
 
 func iniciarMonitoramento() {
   fmt.Println("Monitorando...")
-  site := "https://www.alura.com.br"
+  sites := []string{"https://random-status-code.herokuapp.com/", "https://www.alura.com.br", "https://caelum.com.br"}
+  site := sites[0]
+
   resp, _ := http.Get(site)
 
   if resp.StatusCode == 200 {

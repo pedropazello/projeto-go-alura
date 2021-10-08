@@ -1,8 +1,17 @@
 package main
 
-import "fmt"
-import "os"
-import "net/http"
+import (
+  "fmt"
+  "os"
+  "net/http"
+  "time"
+  "bufio"
+  "io"
+  "strings"
+)
+
+const monitoramentos = 3
+const delay = 5
 
 func main() {
   exibeIntroducao()
@@ -46,20 +55,66 @@ func leComando() int {
   fmt.Scan(&comando)
 
   fmt.Println("O comando escolhido foi", comando)
+  fmt.Println("")
 
   return comando
 }
 
 func iniciarMonitoramento() {
   fmt.Println("Monitorando...")
-  sites := []string{"https://random-status-code.herokuapp.com/", "https://www.alura.com.br", "https://caelum.com.br"}
-  site := sites[0]
 
-  resp, _ := http.Get(site)
+  sites := leSitesArquivo()
+
+  for i := 0; i < monitoramentos; i++ {
+    for i, site := range sites {
+      fmt.Println("Testando site", i, ":", site)
+      testaSite(site)
+    }
+
+    time.Sleep(delay * time.Second)
+    fmt.Println("")
+  }
+}
+
+func testaSite(site string) {
+  resp, err := http.Get(site)
+
+  if err != nil {
+    fmt.Println("ocorreu um erro:", err)
+  }
 
   if resp.StatusCode == 200 {
     fmt.Println("Site:", site, "foi carregado com sucesso")
   } else {
     fmt.Println("Site:", site, "está com problemas. Status Code:", resp.StatusCode)
   }
+}
+
+func leSitesArquivo() []string {
+  var sites []string
+  arquivo, err := os.Open("sites.txt")
+
+  if err != nil {
+    fmt.Println("Ocorreu um erro:", err)
+  }
+
+  leitor := bufio.NewReader(arquivo)
+
+  for {
+    linha, err := leitor.ReadString('\n')
+
+    if err == io.EOF {
+      break
+    }
+
+    if err != nil {
+      fmt.Println("Ocorreu um erro:", err)
+    }
+
+    linha = strings.TrimSpace(linha)
+    sites = append(sites, linha)
+  }
+
+  arquivo.Close()
+  return sites
 }
